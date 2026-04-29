@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Your Trip | A and A Travels</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/booking.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="favicon_io/site.webmanifest">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <style>
+        #map { height: 400px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); margin-top: 10px; z-index: 1; width: 100%; }
+        .leaflet-container { font-family: 'Segoe UI', sans-serif; }
+        .vehicle-option { transition: all 0.3s ease; cursor: pointer; border: 2px solid #e0e0e0; }
+        .vehicle-option.selected { border-color: #004d7a; background-color: #f0f8ff; }
+        .payment-option { border: 2px solid #e0e0e0; padding: 15px; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; }
+        .payment-option.selected { border-color: #00bf72; background-color: #f0fff4; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container nav-container">
+            <div class="logo">A and A Travels</div>
+            <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="index.html#packages">Packages</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="booking.html">Book a Ride</a></li>
+                <li><a href="admin-login.html">Admin Login</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <section class="booking-hero">
+        <div class="container">
+            <h2>Plan Your Perfect Journey</h2>
+            <p>Get real-time pricing with distance calculation and instant booking confirmation</p>
+        </div>
+    </section>
+
+    <div class="container booking-main-container">
+        <div class="booking-steps">
+            <div class="step-indicator">
+                <div class="step active" data-step="1"><span class="step-number">1</span><span class="step-label">Route</span></div>
+                <div class="step" data-step="2"><span class="step-number">2</span><span class="step-label">Vehicle</span></div>
+                <div class="step" data-step="3"><span class="step-number">3</span><span class="step-label">Details</span></div>
+                <div class="step" data-step="4"><span class="step-number">4</span><span class="step-label">Confirm</span></div>
+            </div>
+
+            <!-- Step 1 -->
+            <div class="step-content active" id="step-1">
+                <div class="step-header"><h3><i class="fas fa-route"></i> Select Your Route</h3><p>Enter your pickup and destination locations</p></div>
+                <div class="form-card">
+                    <div class="form-section">
+                        <div class="form-row">
+                            <div class="form-group wide-group">
+                                <label for="pickup"><i class="fas fa-map-marker-alt"></i> Pickup Location *</label>
+                                <div class="autocomplete-container">
+                                    <input type="text" id="pickup" placeholder="Enter pickup city or address..." required>
+                                    <div id="pickupSuggestions" class="suggestions-dropdown"></div>
+                                </div>
+                                <div class="location-buttons">
+                                    <button type="button" class="location-btn" onclick="getCurrentLocation('pickup')"><i class="fas fa-location-arrow"></i> Use My Location</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group wide-group">
+                                <label for="destination"><i class="fas fa-flag-checkered"></i> Destination *</label>
+                                <div class="autocomplete-container">
+                                    <input type="text" id="destination" placeholder="Enter destination city or address..." required>
+                                    <div id="destinationSuggestions" class="suggestions-dropdown"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="popular-routes">
+                            <h5><i class="fas fa-bolt"></i> Popular Routes:</h5>
+                            <div class="route-tags">
+                                <button type="button" class="route-tag" onclick="setRoute('Dehradun', 'Mussoorie')">Dehradun → Mussoorie</button>
+                                <button type="button" class="route-tag" onclick="setRoute('Delhi', 'Dehradun')">Delhi → Dehradun</button>
+                                <button type="button" class="route-tag" onclick="setRoute('Dehradun', 'Rishikesh')">Dehradun → Rishikesh</button>
+                                <button type="button" class="route-tag" onclick="setRoute('Dehradun', 'Haridwar')">Dehradun → Haridwar</button>
+                                <button type="button" class="route-tag" onclick="setRoute('Delhi', 'Mussoorie')">Delhi → Mussoorie</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn calculate-btn" onclick="calculateRoute()">
+                            <i class="fas fa-calculator"></i> Calculate Route & Price
+                        </button>
+                    </div>
+                </div>
+                <div class="form-card">
+                    <h3><i class="fas fa-map-marked-alt"></i> Route Map</h3>
+                    <div id="map"></div>
+                    <div class="map-controls">
+                        <button class="map-btn" onclick="showRouteOnMap()"><i class="fas fa-route"></i> Show Route</button>
+                        <button class="map-btn" onclick="clearRoute()"><i class="fas fa-times"></i> Clear</button>
+                        <button class="map-btn" onclick="zoomToRoute()"><i class="fas fa-search"></i> Zoom</button>
+                    </div>
+                    <div class="route-stats">
+                        <div class="stat-item"><i class="fas fa-road"></i><div><span class="stat-label">Distance</span><span id="mapDistance" class="stat-value">-- km</span></div></div>
+                        <div class="stat-item"><i class="fas fa-tags"></i><div><span class="stat-label">Tolls</span><span id="mapTolls" class="stat-value">--</span></div></div>
+                    </div>
+                </div>
+                <div class="step-navigation">
+                    <button class="btn next-step" onclick="nextStep(2)">Next: Select Vehicle <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-content" id="step-2">
+                <div class="step-header"><h3><i class="fas fa-car"></i> Select Your Vehicle</h3><p>Choose the perfect vehicle for your journey</p></div>
+                <div class="form-card">
+                    <div class="form-section">
+                        <div class="form-row">
+                            <div class="form-group"><label for="tripType"><i class="fas fa-exchange-alt"></i> Trip Type *</label><select id="tripType" required onchange="updateTripType()"><option value="">Select Trip Type</option><option value="round_trip">Round Trip</option><option value="one_way">One-Way Drop</option><option value="daily">Daily Package (8hrs/80km)</option><option value="multiday">Multi-Day Tour</option></select></div>
+                            <div class="form-group"><label for="tripDays"><i class="fas fa-calendar-day"></i> Number of Days</label><input type="number" id="tripDays" min="1" max="30" value="1" onchange="updatePrice()"></div>
+                        </div>
+                    </div>
+                    <div class="vehicle-selection">
+                        <h4><i class="fas fa-car-side"></i> Available Vehicles</h4>
+                        <div class="vehicle-grid">
+                            <div class="vehicle-option" data-vehicle="hatchback" onclick="selectVehicle('hatchback')"><div class="vehicle-icon"><i class="fas fa-car"></i></div><div class="vehicle-info"><h5>Hatchback</h5><p class="vehicle-capacity"><i class="fas fa-users"></i> 4 Passengers</p><p class="vehicle-luggage"><i class="fas fa-suitcase"></i> 2 Bags</p><p class="vehicle-rate">₹12-14/km</p></div><div class="vehicle-price"><span class="price" id="hatchbackPrice">--</span><span class="price-label">Estimated</span></div></div>
+                            <div class="vehicle-option" data-vehicle="sedan" onclick="selectVehicle('sedan')"><div class="vehicle-icon"><i class="fas fa-car-side"></i></div><div class="vehicle-info"><h5>Sedan</h5><p class="vehicle-capacity"><i class="fas fa-users"></i> 4 Passengers</p><p class="vehicle-luggage"><i class="fas fa-suitcase"></i> 3 Bags</p><p class="vehicle-rate">₹14-16/km</p></div><div class="vehicle-price"><span class="price" id="sedanPrice">--</span><span class="price-label">Estimated</span></div></div>
+                            <div class="vehicle-option" data-vehicle="suv" onclick="selectVehicle('suv')"><div class="vehicle-icon"><i class="fas fa-truck"></i></div><div class="vehicle-info"><h5>SUV</h5><p class="vehicle-capacity"><i class="fas fa-users"></i> 7 Passengers</p><p class="vehicle-luggage"><i class="fas fa-suitcase"></i> 4 Bags</p></div><div class="vehicle-price"><span class="price" id="suvPrice">--</span><span class="price-label">Estimated</span></div></div>
+                            <div class="vehicle-option" data-vehicle="luxury" onclick="selectVehicle('luxury')"><div class="vehicle-icon"><i class="fas fa-gem"></i></div><div class="vehicle-info"><h5>Luxury</h5><p class="vehicle-capacity"><i class="fas fa-users"></i> 4 Passengers</p><p class="vehicle-luggage"><i class="fas fa-suitcase"></i> 3 Bags</p></div><div class="vehicle-price"><span class="price" id="luxuryPrice">--</span><span class="price-label">Estimated</span></div></div>
+                            <div class="vehicle-option" data-vehicle="tempo" onclick="selectVehicle('tempo')"><div class="vehicle-icon"><i class="fas fa-bus"></i></div><div class="vehicle-info"><h5>Tempo Traveller</h5><p class="vehicle-capacity"><i class="fas fa-users"></i> 12 Passengers</p><p class="vehicle-luggage"><i class="fas fa-suitcase"></i> 8 Bags</p></div><div class="vehicle-price"><span class="price" id="tempoPrice">--</span><span class="price-label">Estimated</span></div></div>
+                        </div>
+                    </div>
+                    <div class="price-preview">
+                        <h4><i class="fas fa-rupee-sign"></i> Price Estimate</h4>
+                        <div class="price-details"><div class="price-row"><span>Distance:</span><span id="previewDistance">-- km</span></div><div class="price-row"><span>Vehicle:</span><span id="previewVehicle">--</span></div><div class="price-row total"><span>Estimated Total:</span><span id="previewTotal" class="total-amount">₹ --</span></div></div>
+                        <p class="price-note"><i class="fas fa-info-circle"></i> Final price may vary based on exact route and waiting time</p>
+                    </div>
+                </div>
+                <div class="step-navigation">
+                    <button class="btn prev-step" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back to Route</button>
+                    <button class="btn next-step" onclick="nextStep(3)">Next: Trip Details <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-content" id="step-3">
+                <div class="step-header"><h3><i class="fas fa-calendar-alt"></i> Trip Details</h3><p>Enter your travel details and preferences</p></div>
+                <div class="form-card">
+                    <form id="tripDetailsForm">
+                        <div class="form-section"><h4><i class="fas fa-calendar"></i> Travel Schedule</h4><div class="form-row"><div class="form-group"><label for="travelDate"><i class="fas fa-calendar-alt"></i> Travel Date *</label><input type="date" id="travelDate" required onchange="updateDate()"></div><div class="form-group"><label for="pickupTime"><i class="fas fa-clock"></i> Pickup Time *</label><input type="time" id="pickupTime" required onchange="updateTime()"></div></div><div class="form-row"><div class="form-group"><label for="passengers"><i class="fas fa-users"></i> Passengers *</label><div class="passenger-input"><input type="number" id="passengers" min="1" max="20" value="1" required onchange="updatePassengers()"><span class="passenger-note">Max capacity depends on vehicle</span></div></div><div class="form-group"><label for="luggage"><i class="fas fa-suitcase"></i> Luggage (bags)</label><input type="number" id="luggage" min="0" max="10" value="1"></div></div></div>
+                        <div class="form-section"><h4><i class="fas fa-user-circle"></i> Contact Information</h4><div class="form-row"><div class="form-group"><label for="fullName"><i class="fas fa-user"></i> Full Name *</label><input type="text" id="fullName" placeholder="Enter your full name" required></div><div class="form-group"><label for="email"><i class="fas fa-envelope"></i> Email Address *</label><input type="email" id="email" placeholder="Enter your email address" required></div></div><div class="form-row"><div class="form-group"><label for="phone"><i class="fas fa-phone"></i> Phone Number *</label><input type="tel" id="phone" placeholder="Enter 10-digit mobile number" pattern="[0-9]{10}" required></div><div class="form-group"><label for="whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp Number</label><input type="tel" id="whatsapp" placeholder="Optional WhatsApp number"></div></div><div class="form-group"><label for="address"><i class="fas fa-home"></i> Complete Pickup Address</label><textarea id="address" rows="3" placeholder="Complete address with landmark..."></textarea></div><div class="form-group"><label for="specialRequest"><i class="fas fa-comment-alt"></i> Special Requests</label><textarea id="specialRequest" rows="3" placeholder="Any special requirements, luggage details, etc."></textarea></div></div>
+                        <div class="form-section"><h4><i class="fas fa-file-invoice-dollar"></i> Detailed Price Breakdown</h4><div class="detailed-price"><div class="price-breakdown"><div class="price-row"><span>Base Fare:</span><span id="detailBaseFare">₹ 0</span></div><div class="price-row"><span>Distance Charges:</span><span id="detailDistanceFare">₹ 0</span></div><div class="price-row"><span>Trip Type Surcharge:</span><span id="detailTripSurcharge">₹ 0</span></div><div class="price-row"><span>Toll Charges:</span><span id="detailTollCharges">₹ 0</span></div><div class="price-row"><span>Driver Allowance:</span><span id="detailDriverAllowance">₹ 0</span></div><div class="price-row"><span>Night Charges (if applicable):</span><span id="detailNightCharges">₹ 0</span></div><div class="price-row subtotal"><span>Subtotal:</span><span id="detailSubtotal">₹ 0</span></div><div class="price-row"><span>GST (5%):</span><span id="detailGST">₹ 0</span></div><div class="price-row total"><span>Total Amount:</span><span id="detailTotal" class="total-amount">₹ 0</span></div></div></div></div>
+                    </form>
+                </div>
+                <div class="step-navigation">
+                    <button class="btn prev-step" onclick="prevStep()"><i class="fas fa-arrow-left"></i> Back to Vehicle</button>
+                    <button class="btn next-step" onclick="nextStep(4)">Next: Confirm Booking <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Step 4 – Updated QR image -->
+            <div class="step-content" id="step-4">
+                <div class="step-header"><h3><i class="fas fa-check-circle"></i> Confirm Booking & Payment</h3><p>Review your booking and make payment</p></div>
+                <div class="form-card">
+                    <div class="booking-summary"><h4><i class="fas fa-clipboard-check"></i> Booking Summary</h4><div class="summary-grid"><div class="summary-item"><span class="summary-label">Route:</span><span class="summary-value" id="summaryRoute">--</span></div><div class="summary-item"><span class="summary-label">Vehicle:</span><span class="summary-value" id="summaryVehicle">--</span></div><div class="summary-item"><span class="summary-label">Travel Date:</span><span class="summary-value" id="summaryDate">--</span></div><div class="summary-item"><span class="summary-label">Pickup Time:</span><span class="summary-value" id="summaryTime">--</span></div><div class="summary-item"><span class="summary-label">Passengers:</span><span class="summary-value" id="summaryPassengers">--</span></div><div class="summary-item"><span class="summary-label">Distance:</span><span class="summary-value" id="summaryDistance">-- km</span></div><div class="summary-item total"><span class="summary-label">Total Amount:</span><span class="summary-value" id="summaryTotal">₹ --</span></div></div></div>
+                    
+                    <div class="payment-section"><h4><i class="fas fa-credit-card"></i> Payment Options</h4>
+                        <div class="payment-options">
+                            <div class="payment-option" onclick="selectPayment('cash')">
+                                <input type="radio" id="cash" name="payment" value="cash" checked>
+                                <label for="cash"><i class="fas fa-money-bill-wave"></i><div><h5>Cash Payment</h5><p>Pay directly to the driver</p></div></label>
+                            </div>
+                            <div class="payment-option" onclick="selectPayment('online')">
+                                <input type="radio" id="online" name="payment" value="online">
+                                <label for="online"><i class="fas fa-mobile-alt"></i><div><h5>UPI / Online Payment</h5><p>Pay now using any UPI app</p></div></label>
+                            </div>
+                        </div>
+                        <!-- Online Payment Details (UPI only) with actual QR image -->
+                        <div class="online-payment-details" id="onlinePaymentDetails" style="display:none;">
+                            <div class="form-section">
+                                <h5><i class="fas fa-qrcode"></i> Pay via UPI</h5>
+                                <div class="upi-details">
+                                    <div class="upi-id-box">
+                                        <span>UPI ID:</span>
+                                        <strong>7906529891@ptsbi</strong>
+                                        <button type="button" onclick="copyUPI()" class="copy-btn"><i class="fas fa-copy"></i> Copy</button>
+                                    </div>
+                                    <p class="upi-note">Scan QR code or copy UPI ID and pay using any UPI app (Google Pay, PhonePe, Paytm, etc.)</p>
+                                    <div class="qr-placeholder">
+                                        <!-- QR Image - replace 'upi-qr.png' with your actual filename -->
+                                        <img src="images/upi-qr.jpg" alt="UPI QR Code" style="width:150px; height:150px; border-radius:10px;">
+                                        <p>Scan QR to pay</p>
+                                    </div>
+                                    <div class="payment-note">
+                                        <p><i class="fas fa-info-circle"></i> After successful payment, your booking will be confirmed instantly.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="terms-section"><h4><i class="fas fa-file-contract"></i> Terms & Conditions</h4><div class="terms-content"><p><i class="fas fa-check-circle"></i> I confirm that all information provided is accurate</p><p><i class="fas fa-check-circle"></i> I agree to the cancellation policy</p><p><i class="fas fa-check-circle"></i> I understand the fare is an estimate and may vary</p><p><i class="fas fa-check-circle"></i> I agree to A and A Travels' terms and conditions</p><label class="terms-check"><input type="checkbox" id="agreeTerms" required><span>I agree to all <a href="#" onclick="showTerms()">Terms & Conditions</a></span></label></div></div>
+                    <div class="final-actions"><button type="button" class="btn submit-btn" onclick="submitBooking(event)"><i class="fas fa-paper-plane"></i> Confirm & Book Now</button><button type="button" class="btn reset-btn" onclick="resetBooking()"><i class="fas fa-redo"></i> Start New Booking</button></div>
+                    <div class="support-info"><p><i class="fas fa-phone-alt"></i> Need help? Call: +91 9756354502</p><p><i class="fab fa-whatsapp"></i> WhatsApp: +91 9756354502</p><p><i class="fas fa-envelope"></i> Email: algomaster18@gmail.com</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section"><h4>A and A Travels</h4><p><i class="fas fa-map-marker-alt"></i> Hathibarkala, Dehradun, Uttarakhand</p><p><i class="fas fa-envelope"></i> algomaster18@gmail.com</p><p><i class="fas fa-phone"></i> +91 9756354502</p><p><i class="fab fa-whatsapp"></i> +91 9756354502</p></div>
+                <div class="footer-section"><h4>Quick Links</h4><a href="index.html"><i class="fas fa-home"></i> Home</a><a href="about.html"><i class="fas fa-info-circle"></i> About Us</a><a href="booking.html"><i class="fas fa-car"></i> Book Now</a><a href="contact.html"><i class="fas fa-envelope"></i> Contact</a></div>
+                <div class="footer-section"><h4>Our Services</h4><a href="#"><i class="fas fa-mountain"></i> Hill Station Tours</a><a href="#"><i class="fas fa-temple"></i> Pilgrimage Tours</a><a href="#"><i class="fas fa-city"></i> City Packages</a><a href="#"><i class="fas fa-taxi"></i> Local Transport</a></div>
+                <div class="footer-section"><h4>Connect With Us</h4><div class="social-links"><a href="#"><i class="fab fa-facebook"></i></a><a href="#"><i class="fab fa-instagram"></i></a><a href="#"><i class="fab fa-whatsapp"></i></a><a href="#"><i class="fab fa-twitter"></i></a><a href="#"><i class="fab fa-youtube"></i></a></div><div class="business-hours"><p><i class="fas fa-clock"></i> 24/7 Support</p><p><i class="fas fa-calendar-check"></i> 365 Days Service</p></div></div>
+            </div>
+            <div class="footer-bottom"><p class="copyright">&copy; 2025 A and A Travels, Dehradun. All Rights Reserved.</p><div class="footer-links"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Refund Policy</a></div></div>
+        </div>
+    </footer>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3><i class="fas fa-check-circle"></i> Booking Successful!</h3><button class="close-modal" onclick="closeModal()">&times;</button></div>
+            <div class="modal-body"><div class="success-icon"><i class="fas fa-check-circle"></i></div><h4>Thank You for Booking with A and A Travels!</h4><div class="booking-details"><p><strong>Booking ID:</strong> <span id="bookingId">AA123456</span></p><p><strong>Route:</strong> <span id="modalRoute">Dehradun to Mussoorie</span></p><p><strong>Travel Date:</strong> <span id="modalDate">15 Jan 2025</span></p><p><strong>Vehicle:</strong> <span id="modalVehicle">SUV</span></p><p><strong>Total Amount:</strong> <span id="modalAmount">₹ 2,500</span></p><p><strong>Payment Method:</strong> <span id="modalPayment">Cash</span></p></div><div class="next-steps"><p><i class="fas fa-phone"></i> Our team will contact you within 30 minutes for confirmation.</p><p><i class="fas fa-envelope"></i> Booking details sent to your email.</p><p><i class="fas fa-whatsapp"></i> WhatsApp confirmation sent to your number.</p></div></div>
+            <div class="modal-footer">
+                <button class="btn modal-btn" onclick="closeModal()">Close</button>
+                <button class="btn modal-btn primary" onclick="printBooking()"><i class="fas fa-print"></i> Print Booking</button>
+                <button class="btn modal-btn" onclick="shareBooking()"><i class="fas fa-share-alt"></i> Share</button>
+                <button class="btn modal-btn" onclick="downloadInvoice()"><i class="fas fa-download"></i> Download Invoice</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTP storage for invoice -->
+    <span id="modalOtp" style="display:none;"></span>
+
+    <!-- EmailJS & Leaflet -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>emailjs.init("F9hObBS_dVOPbUKte");</script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/booking.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | A and A Travels</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="favicon_io/site.webmanifest">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header"><h2>A and A Travels</h2><p>Admin Dashboard</p></div>
+            <div class="sidebar-nav">
+                <div class="nav-item active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></div>
+                <div class="nav-item" data-section="analytics"><i class="fas fa-chart-line"></i><span>Analytics</span></div>
+                <div class="nav-item" data-section="pricing"><i class="fas fa-rupee-sign"></i><span>Manage Pricing</span></div>
+                <div class="nav-item" data-section="bookings"><i class="fas fa-calendar-check"></i><span>Bookings</span></div>
+                <div class="nav-item" data-section="vehicles"><i class="fas fa-car"></i><span>Vehicles</span></div>
+                <div class="nav-item" data-section="routes"><i class="fas fa-route"></i><span>Popular Routes</span></div>
+                <div class="nav-item" data-section="enquiries"><i class="fas fa-envelope"></i><span>Enquiries</span></div>
+                <div class="nav-item" data-section="settings"><i class="fas fa-cog"></i><span>Settings</span></div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title" id="pageTitle">Dashboard</h1>
+                <div class="admin-info"><span><i class="fas fa-user-shield"></i> Admin</span><button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="section active">
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-info"><h3 id="totalBookings">0</h3><p>Total Bookings</p></div><div class="stat-icon"><i class="fas fa-calendar-alt"></i></div></div>
+                    <div class="stat-card"><div class="stat-info"><h3 id="totalRevenue">₹0</h3><p>Total Revenue</p></div><div class="stat-icon"><i class="fas fa-rupee-sign"></i></div></div>
+                    <div class="stat-card"><div class="stat-info"><h3 id="activeVehicles">0</h3><p>Active Vehicles</p></div><div class="stat-icon"><i class="fas fa-car"></i></div></div>
+                    <div class="stat-card"><div class="stat-info"><h3 id="pendingBookings">0</h3><p>Pending Bookings</p></div><div class="stat-icon"><i class="fas fa-clock"></i></div></div>
+                </div>
+                <div style="background: white; padding: 20px; border-radius: 15px;">
+                    <h3>Recent Bookings</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" id="recentBookingsTable">
+                            <thead><tr><th>ID</th><th>Customer</th><th>Phone</th><th>Route</th><th>Fare</th><th>Status</th><th>OTP</th><th>Action</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Dashboard -->
+            <div id="analytics-section" class="section">
+                <div class="section-header"><h2><i class="fas fa-chart-line"></i> Booking Analytics</h2></div>
+                <div class="charts-grid">
+                    <div class="chart-card"><h4>Revenue Trend (Last 7 days)</h4><canvas id="revenueChart"></canvas></div>
+                    <div class="chart-card"><h4>Bookings by Vehicle Type</h4><canvas id="vehicleChart"></canvas></div>
+                    <div class="chart-card"><h4>Booking Status Distribution</h4><canvas id="statusChart"></canvas></div>
+                    <div class="chart-card"><h4>Monthly Bookings</h4><canvas id="monthlyChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Pricing Section -->
+            <div id="pricing-section" class="section">
+                <div class="section-header"><h2><i class="fas fa-rupee-sign"></i> Fare Configuration</h2><button class="btn-add" onclick="savePricing()"><i class="fas fa-save"></i> Save All Changes</button></div>
+                <div class="pricing-grid" id="pricingGrid"></div>
+                <div class="pricing-card" style="margin-top:20px">
+                    <h4>Additional Charges</h4>
+                    <div class="form-row">
+                        <div class="form-group"><label>Peak Hour Multiplier</label><input type="number" id="peakMultiplier" step="0.01" value="1.25"></div>
+                        <div class="form-group"><label>Night Charge Multiplier</label><input type="number" id="nightMultiplier" step="0.01" value="1.3"></div>
+                        <div class="form-group"><label>Convenience Fee (₹)</label><input type="number" id="convenienceFee" value="30"></div>
+                        <div class="form-group"><label>GST (%)</label><input type="number" id="gstPercent" value="5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bookings Section -->
+            <div id="bookings-section" class="section">
+                <div class="section-header"><h2><i class="fas fa-list"></i> All Bookings</h2><button class="btn-add" onclick="openAddBookingModal()"><i class="fas fa-plus"></i> Add Booking</button></div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table" id="allBookingsTable">
+                        <thead><tr><th>ID</th><th>Customer</th><th>Phone</th><th>Pickup</th><th>Destination</th><th>Vehicle</th><th>Fare</th><th>Date</th><th>Status</th><th>OTP</th><th>Action</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Vehicles Section -->
+            <div id="vehicles-section" class="section">
+                <div class="section-header"><h2><i class="fas fa-car"></i> Vehicle Management</h2><button class="btn-add" onclick="addVehicle()"><i class="fas fa-plus"></i> Add Vehicle</button></div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table" id="vehiclesTable">
+                        <thead><tr><th>Type</th><th>Name</th><th>Base Fare</th><th>Per Km</th><th>Per Min</th><th>Capacity</th><th>Action</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Routes Section -->
+            <div id="routes-section" class="section">
+                <div class="section-header"><h2><i class="fas fa-route"></i> Popular Routes</h2><button class="btn-add" onclick="addRoute()"><i class="fas fa-plus"></i> Add Route</button></div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table" id="routesTable">
+                        <thead><tr><th>Pickup</th><th>Destination</th><th>Distance (km)</th><th>Est. Time (min)</th><th>Est. Toll</th><th>Action</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Enquiries Section -->
+            <div id="enquiries-section" class="section">
+                <div class="section-header"><h2><i class="fas fa-envelope"></i> Customer Enquiries</h2></div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table" id="enquiriesTable">
+                        <thead>
+                            <tr><th>Name</th><th>Email</th><th>Phone</th><th>Subject</th><th>Message</th><th>Date</th><th>Handled</th><th>Action</th></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings-section" class="section">
+                <div class="section-header"><h2><i class="fas fa-sliders-h"></i> System Settings</h2></div>
+                <div class="form-card">
+                    <div class="form-row"><div class="form-group"><label>Company Name</label><input type="text" id="companyName" value="A and A Travels"></div><div class="form-group"><label>Support Phone</label><input type="text" id="supportPhone" value="+91 9756354502"></div></div>
+                    <div class="form-row"><div class="form-group"><label>Email</label><input type="email" id="supportEmail" value="algomaster18@gmail.com"></div><div class="form-group"><label>Booking Advance (%)</label><input type="number" id="advancePercent" value="20"></div></div>
+                    <div class="form-group"><label>Cancellation Policy</label><textarea id="cancellationPolicy" rows="4">Free cancellation up to 1 hour before pickup. 50% charges within 1 hour. No-show: 100% charges.</textarea></div>
+                    <button class="btn-add" onclick="saveSettings()">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Booking Modal -->
+    <div id="addBookingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Add New Booking</h3><span class="close" onclick="closeAddBookingModal()">&times;</span></div>
+            <div class="form-group"><label>Customer Name</label><input type="text" id="newCustomerName" placeholder="Full name"></div>
+            <div class="form-group"><label>Phone Number</label><input type="text" id="newCustomerPhone" placeholder="10-digit mobile"></div>
+            <div class="form-group"><label>Pickup Location</label><input type="text" id="newPickup" placeholder="Pickup address"></div>
+            <div class="form-group"><label>Destination</label><input type="text" id="newDestination" placeholder="Destination"></div>
+            <div class="form-row">
+                <div class="form-group"><label>Vehicle Type</label><select id="newVehicle"><option value="hatchback">Hatchback</option><option value="sedan">Sedan</option><option value="suv">SUV</option><option value="luxury">Luxury</option><option value="tempo">Tempo Traveller</option></select></div>
+                <div class="form-group"><label>Fare (₹)</label><input type="number" id="newFare" placeholder="Total fare"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Travel Date</label><input type="date" id="newDate"></div>
+                <div class="form-group"><label>Status</label><select id="newStatus"><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="cancelled">Cancelled</option></select></div>
+            </div>
+            <div class="form-group"><label>Special Requests</label><textarea id="newRequests" rows="2"></textarea></div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                <button class="btn-add" onclick="saveNewBooking()">Save Booking</button>
+                <button class="btn-delete" onclick="closeAddBookingModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Booking Modal -->
+    <div id="editBookingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Edit Booking</h3><span class="close" onclick="closeEditBookingModal()">&times;</span></div>
+            <input type="hidden" id="editBookingId">
+            <div class="form-group"><label>Customer Name</label><input type="text" id="editCustomerName"></div>
+            <div class="form-group"><label>Phone Number</label><input type="text" id="editPhone"></div>
+            <div class="form-group"><label>Pickup Location</label><input type="text" id="editPickup"></div>
+            <div class="form-group"><label>Destination</label><input type="text" id="editDestination"></div>
+            <div class="form-row">
+                <div class="form-group"><label>Vehicle</label><input type="text" id="editVehicle"></div>
+                <div class="form-group"><label>Fare (₹)</label><input type="number" id="editFare"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Travel Date</label><input type="date" id="editDate"></div>
+                <div class="form-group"><label>Status</label><select id="editStatus"><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="cancelled">Cancelled</option></select></div>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                <button class="btn-add" onclick="updateBooking()">Update Booking</button>
+                <button class="btn-delete" onclick="closeEditBookingModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs & Config -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

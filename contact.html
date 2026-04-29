@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | A and A Travels</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/contact.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="favicon_io/site.webmanifest">
+</head>
+<body>
+    <header>
+        <div class="container nav-container">
+            <div class="logo">A and A Travels</div>
+            <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="index.html#packages">Packages</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="booking.html">Book a Ride</a></li>
+                <li><a href="admin-login.html">Admin Login</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <section class="contact-hero">
+        <div class="container">
+            <h2>Get in Touch</h2>
+            <p>We're here to help you plan your perfect journey. Reach out anytime!</p>
+        </div>
+    </section>
+
+    <div class="container contact-container">
+        <div class="contact-grid">
+            <!-- Contact Form -->
+            <div class="contact-form-card">
+                <h3><i class="fas fa-envelope"></i> Send us a Message</h3>
+                <form id="contactForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name"><i class="fas fa-user"></i> Full Name *</label>
+                            <input type="text" id="name" placeholder="Your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email"><i class="fas fa-envelope"></i> Email Address *</label>
+                            <input type="email" id="email" placeholder="your@email.com" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone"><i class="fas fa-phone"></i> Phone Number</label>
+                            <input type="tel" id="phone" placeholder="10-digit mobile number">
+                        </div>
+                        <div class="form-group">
+                            <label for="subject"><i class="fas fa-tag"></i> Subject *</label>
+                            <select id="subject" required>
+                                <option value="">Select subject</option>
+                                <option value="booking">Booking Inquiry</option>
+                                <option value="custom">Custom Tour Package</option>
+                                <option value="support">Customer Support</option>
+                                <option value="feedback">Feedback / Suggestion</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="message"><i class="fas fa-comment-alt"></i> Message *</label>
+                        <textarea id="message" rows="5" placeholder="Tell us about your travel plans, questions, or feedback..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn submit-btn">
+                        <i class="fas fa-paper-plane"></i> Send Message
+                    </button>
+                    <div id="formStatus" class="form-status" style="display: none;"></div>
+                </form>
+            </div>
+
+            <!-- Contact Information + Map -->
+            <div class="contact-info-card">
+                <div class="info-section">
+                    <h3><i class="fas fa-address-card"></i> Contact Information</h3>
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <strong>Head Office</strong>
+                            <p>Hathibarkala, Dehradun, Uttarakhand - 248001, India</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-phone-alt"></i>
+                        <div>
+                            <strong>Phone</strong>
+                            <p>+91 9756354502</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fab fa-whatsapp"></i>
+                        <div>
+                            <strong>WhatsApp</strong>
+                            <p>+91 9756354502 (24/7)</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <strong>Email</strong>
+                            <p>algomaster18@gmail.com</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <strong>Business Hours</strong>
+                            <p>Monday - Sunday: 9:00 AM - 9:00 PM<br>Support: 24/7</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Links -->
+                <div class="social-section">
+                    <h4>Connect with Us</h4>
+                    <div class="social-icons">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+
+                <!-- Map -->
+                <div class="map-section">
+                    <h4><i class="fas fa-map-pin"></i> Find Us</h4>
+                    <div id="officeMap"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="faq-section">
+        <div class="container">
+            <h3><i class="fas fa-question-circle"></i> Frequently Asked Questions</h3>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <div class="faq-question"><i class="fas fa-chevron-right"></i> How do I book a cab?</div>
+                    <div class="faq-answer">You can book directly through our website's <a href="booking.html">booking page</a>, call our helpline, or send a WhatsApp message. Instant confirmation provided.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question"><i class="fas fa-chevron-right"></i> What payment methods do you accept?</div>
+                    <div class="faq-answer">Cash, UPI (Google Pay, PhonePe, Paytm), credit/debit cards, and bank transfer.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question"><i class="fas fa-chevron-right"></i> Can I cancel my booking?</div>
+                    <div class="faq-answer">Yes, free cancellation up to 24 hours before pickup. Cancellation within 24 hours incurs 50% charges. No‑show: no refund.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question"><i class="fas fa-chevron-right"></i> Do you offer outstation tours?</div>
+                    <div class="faq-answer">Absolutely! We provide all-India outstation packages, including hill stations, pilgrimages, and city tours. Check our packages section.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>A and A Travels</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> Hathibarkala, Dehradun, Uttarakhand</p>
+                    <p><i class="fas fa-envelope"></i> algomaster18@gmail.com</p>
+                    <p><i class="fas fa-phone"></i> +91 9756354502</p>
+                    <p><i class="fab fa-whatsapp"></i> +91 9756354502</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <a href="index.html"><i class="fas fa-home"></i> Home</a>
+                    <a href="about.html"><i class="fas fa-info-circle"></i> About Us</a>
+                    <a href="booking.html"><i class="fas fa-car"></i> Book Now</a>
+                    <a href="contact.html"><i class="fas fa-envelope"></i> Contact</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Our Services</h4>
+                    <a href="#"><i class="fas fa-mountain"></i> Hill Station Tours</a>
+                    <a href="#"><i class="fas fa-temple"></i> Pilgrimage Tours</a>
+                    <a href="#"><i class="fas fa-city"></i> City Packages</a>
+                    <a href="#"><i class="fas fa-taxi"></i> Local Transport</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect With Us</h4>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                    <div class="business-hours">
+                        <p><i class="fas fa-clock"></i> 24/7 Support</p>
+                        <p><i class="fas fa-calendar-check"></i> 365 Days Service</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="copyright">&copy; 2025 A and A Travels, Dehradun. All Rights Reserved.</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Refund Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Success Modal -->
+    <div id="contactSuccessModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle"></i> Message Sent!</h3>
+                <button class="close-modal" onclick="closeContactModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+                <h4>Thank You for Contacting Us</h4>
+                <p>Your message has been received. We will get back to you within 24 hours.</p>
+                <p>For urgent inquiries, please call us at <strong>+91 9756354502</strong>.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn modal-btn" onclick="closeContactModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/contact.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
